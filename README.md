@@ -197,7 +197,7 @@ GitHub Copilot in VS Code supports MCP servers through the Copilot Extensions AP
     "mcp.servers": {
       "workplace-prompts": {
         "command": "python",
-        "args": ["/absolute/path/to/mcp_stdio_server.py"],
+        "args": ["-u", "/absolute/path/to/mcp_stdio_server.py"],
         "env": {}
       }
     }
