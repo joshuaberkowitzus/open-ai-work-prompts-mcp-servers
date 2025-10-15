@@ -1,5 +1,5 @@
-import sys
 import json
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 PROMPTS = {
     "communication-writing": {
@@ -32,40 +32,34 @@ PROMPTS = {
     }
 }
 
-def list_prompts():
-    """Prints a structured list of all available prompts."""
-    print("\nAvailable Prompts (category/use-case):")
-    for category, use_cases in PROMPTS.items():
-        for use_case in use_cases:
-            print(f"  {category}/{use_case}")
-    print("\n")
+class PromptServer(BaseHTTPRequestHandler):
+    def _send_response(self, status_code, data):
+        self.send_response(status_code)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data).encode('utf-8'))
 
-
-def main():
-    """Main loop to handle stdio commands."""
-    print("--- Stdio Prompt Server ---")
-    print("Type 'list' to see all prompts, 'category/use-case' to get a prompt, or 'exit' to quit.")
-
-    for line in sys.stdin:
-        command = line.strip()
-
-        if command == 'exit':
-            break
-        elif command == 'list':
-            list_prompts()
-        elif '/' in command:
-            try:
-                category, use_case = command.split('/', 1)
+    def do_GET(self):
+        if self.path == '/prompts':
+            prompt_list = {category: list(prompts.keys()) for category, prompts in PROMPTS.items()}
+            self._send_response(200, prompt_list)
+        else:
+            parts = self.path.strip('/').split('/')
+            if len(parts) == 3 and parts[0] == 'prompts':
+                category, use_case = parts[1], parts[2]
                 prompt = PROMPTS.get(category, {}).get(use_case)
                 if prompt:
-                    # Using JSON for a structured output
-                    print(json.dumps({'prompt': prompt}, indent=2))
+                    self._send_response(200, {'prompt': prompt})
                 else:
-                    print(json.dumps({'error': 'Prompt not found.'}))
-            except ValueError:
-                print(json.dumps({'error': "Invalid format. Please use 'category/use-case'."}))
-        else:
-            print(json.dumps({'error': "Unknown command. Type 'list' or 'exit'."}))
+                    self._send_response(404, {'error': 'Prompt not found'})
+            else:
+                self._send_response(404, {'error': 'Invalid endpoint'})
+
+def run_server(server_class=HTTPServer, handler_class=PromptServer, port=8000):
+    server_address = ('', port)
+    httpd = server_class(server_address, handler_class)
+    print(f"Starting httpd server on port {port}...")
+    httpd.serve_forever()
 
 if __name__ == '__main__':
-    main()
+    run_server()
