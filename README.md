@@ -1,6 +1,7 @@
 # Workplace Prompts MCP Server
 
-A Model Context Protocol (MCP) server that exposes workplace productivity prompts as resources, prompts, and tools. Available in both HTTP and stdio implementations. Prompts can be found in the original article at [https://academy.openai.com/public/clubs/work-users-ynjqu/resources/chatgpt-for-any-role]
+A Model Context Protocol (MCP) server that exposes workplace productivity prompts as resources, prompts, and tools. Available in both HTTP and stdio implementations.
+Prompts : https://academy.openai.com/public/clubs/work-users-ynjqu/resources/chatgpt-for-any-role
 
 ## Features
 
@@ -157,7 +158,9 @@ The server reads JSON-RPC requests from stdin and writes responses to stdout.
 - `brainstorm-solutions` - Generate solution ideas
 - `write-project-update` - Draft status updates
 
-## Configuration with Claude Desktop
+## Configuration
+
+### Claude Desktop
 
 To use with Claude Desktop, add to your config file:
 
@@ -173,8 +176,130 @@ To use with Claude Desktop, add to your config file:
 }
 ```
 
+**Config file locations:**
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
 **For HTTP version:**
 Start the HTTP server separately, then configure Claude Desktop to connect to `http://localhost:3000`
+
+### VS Code with GitHub Copilot
+
+GitHub Copilot in VS Code supports MCP servers through the Copilot Extensions API.
+
+**Setup with stdio version:**
+
+1. Create or edit `.vscode/settings.json` in your workspace:
+
+```json
+{
+  "github.copilot.advanced": {
+    "mcp.servers": {
+      "workplace-prompts": {
+        "command": "python",
+        "args": ["/absolute/path/to/mcp_stdio_server.py"],
+        "env": {}
+      }
+    }
+  }
+}
+```
+
+2. Reload VS Code window (Cmd/Ctrl + Shift + P → "Developer: Reload Window")
+
+3. Access prompts through Copilot Chat using `@workplace-prompts`
+
+**Setup with HTTP version:**
+
+1. Start the HTTP server:
+```bash
+python mcp_http_server.py
+```
+
+2. Configure in `.vscode/settings.json`:
+```json
+{
+  "github.copilot.advanced": {
+    "mcp.servers": {
+      "workplace-prompts": {
+        "url": "http://localhost:3000/mcp/v1"
+      }
+    }
+  }
+}
+```
+
+**Usage in VS Code:**
+```
+@workplace-prompts /communication-writing/write-professional-email
+```
+
+### Gemini CLI
+
+Google's Gemini CLI (experimental) supports MCP through configuration files.
+
+**Setup with stdio version:**
+
+1. Create or edit `~/.gemini/config.json`:
+
+```json
+{
+  "mcpServers": {
+    "workplace-prompts": {
+      "command": "python3",
+      "args": ["/absolute/path/to/mcp_stdio_server.py"],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}
+```
+
+2. Verify the server is registered:
+```bash
+gemini mcp list
+```
+
+**Usage with Gemini CLI:**
+```bash
+# List available prompts
+gemini mcp resources list workplace-prompts
+
+# Use a prompt
+gemini chat --mcp workplace-prompts \
+  "Use the write-professional-email prompt for a budget update to my manager"
+
+# Call a tool directly
+gemini mcp tools call workplace-prompts \
+  communication-writing/write-professional-email \
+  --input "Recipient: John Smith, Topic: Q4 Budget Review"
+```
+
+**Setup with HTTP version:**
+
+1. Start the HTTP server first:
+```bash
+python mcp_http_server.py
+```
+
+2. Configure in `~/.gemini/config.json`:
+```json
+{
+  "mcpServers": {
+    "workplace-prompts": {
+      "transport": "http",
+      "url": "http://localhost:3000"
+    }
+  }
+}
+```
+
+**Environment Variables for Gemini:**
+```bash
+export GEMINI_MCP_WORKPLACE_PROMPTS_ENABLED=true
+export GEMINI_MCP_LOG_LEVEL=debug  # For troubleshooting
+```
 
 ## Architecture
 
