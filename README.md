@@ -1,6 +1,6 @@
 # Workplace Prompts MCP Server
 
-A Model Context Protocol (MCP) server that exposes workplace productivity prompts as resources, prompts, and tools. Available in both HTTP and stdio implementations. Prompts can be found in the original article at https://academy.openai.com/public/clubs/work-users-ynjqu/resources/chatgpt-for-any-role[https://academy.openai.com/public/clubs/work-users-ynjqu/resources/chatgpt-for-any-role]
+A Model Context Protocol (MCP) server that exposes workplace productivity prompts as resources, prompts, and tools. Available in both HTTP and stdio implementations. Prompts can be found in the original article at [https://academy.openai.com/public/clubs/work-users-ynjqu/resources/chatgpt-for-any-role]
 
 ## Features
 
